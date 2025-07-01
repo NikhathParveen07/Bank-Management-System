@@ -1,7 +1,24 @@
+#include <iostream>
+#include <limits>
+using namespace std;
 #ifndef UTILS_H
 #define UTILS_H
 
 int getLength(long long n);
+
+template <typename T>
+bool getValidInput(T &input)
+{
+  cin >> input;
+  if (cin.fail())
+  {
+    cin.clear();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cout << "Invalid input. Please enter a valid number.\n";
+    return false;
+  }
+  return true;
+}
 
 #endif
 

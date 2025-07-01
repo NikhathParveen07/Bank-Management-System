@@ -11,23 +11,31 @@ private:
   long long Holder_PhoneNumber;
   double balance;
   string Holder_Address;
-  static long long last_account_number;
-  const double minimum_balance = 0;
 
 public:
-  static void setLastAccountNumber(long long num);
-  void createAccount();
-  void displayAccount(long long accNo);
-  void deposit(long long accNo, double amount);
-  void withdraw(long long accNo, double amount);
-  long long getAccountNumber();
-  bool modifyAccount();
-  void viewTransactionlog(long long accNo);
-  
+  BankAccount();
+  BankAccount(long long accNo, string &name, long long phone, string &addr, double bal);
 
-private:
-  bool updateAccountInFile();
-  void logTransaction(long long accNo, const string& type, double amount);
+  long long getAccountNumber();
+  string getHolderName();
+  long long getPhoneNumber();
+  string getAddress();
+  double getBalance();
+
+  void setAccountNumber(long long accNo);
+  void setHolderName(string &name);
+  void setPhoneNumber(long long phone);
+  void setAddress(string &addr);
+  void setBalance(double bal);
+
+  void inputDetails();
+  string toFileString();
+  static BankAccount fromFileString(string &line);
+
+  void displayDetails();
+  bool modifyDetails();
+  bool deposit(double amount);
+  bool withdraw(double amount);
 };
 
 #endif

@@ -1,168 +1,107 @@
 #include <iostream>
-#include <limits>  //to check the the length and invalid inputs for menu, phone number
-#include <fstream> // for files
-#include <sstream> // for string stream function to read the files
-#include <string>  //for string functions like stoll, stod
-#include "BankAccount.h"
+#include "AccountManager.h"
 #include "Utils.h"
+#include <limits> //to check the the length and invalid inputs for menu, phone number
+
 using namespace std;
 
 int main()
 {
-  ifstream inFile("accounts.txt");
-  string line;
-  long long maxAccountNo = 10000000;
-  while (getline(inFile, line))
-  {
-    stringstream ss(line);
-    string token;
-    getline(ss, token, '|');
-    long long accountNo = stoll(token);
-    if (accountNo > maxAccountNo)
-    {
-      maxAccountNo = accountNo;
-    }
-  }
-  inFile.close();
-  BankAccount::setLastAccountNumber(maxAccountNo);
-
-  BankAccount account;
-  int choice;
-  long long accNo;
+  AccountManager manager;
   while (true)
   {
+    long long accNo;
+    double amount;
     cout << "----- BANK ACCOUNT MANAGEMENT SYSTEM -----" << endl;
     cout << "1. Create New Account" << endl;
     cout << "2. Display Account Details" << endl;
-    cout << "3.Deposit Money" << endl;
-    cout << "4.Withdraw Money" << endl;
-    cout << "5.Modify Account" << endl;
-    cout << "6.View Transaction Log" << endl;
-    cout << "7.Exit" << endl;
+    cout << "3. Deposit Money" << endl;
+    cout << "4. Withdraw Money" << endl;
+    cout << "5. Modify Account" << endl;
+    cout << "6. View Transaction Log" << endl;
+    cout << "7. Exit" << endl;
     cout << "------------------------------------------------" << endl;
-
-    cout << "Enter your choice: " << endl;
-    cin >> choice;
-    if (cin.fail())
+    int choice;
+    while (true)
     {
-      cin.clear();
-      cin.ignore(numeric_limits<streamsize>::max(), '\n');
-      cout << "Invalid input. Please enter digits only.\n";
-      continue;
+      cout << "Enter your choice: ";
+      if (getValidInput(choice))
+      {
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+        break;
+      }
     }
-
+    cout << "press Enter" << endl;
     switch (choice)
     {
     case 1:
-      account.createAccount();
+      manager.createAccount();
       break;
 
     case 2:
-
       cout << "Enter account Number: " << endl;
-      cin >> accNo;
-      if (cin.fail())
-      {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid input. Please enter digits only.\n";
-        continue; //--
-      }
-      account.displayAccount(accNo);
+      while (!getValidInput(accNo))
+        ;
+      manager.displayAccount(accNo);
       break;
+
     case 3:
-      long long accountNo;
       cout << "Enter account Number: " << endl;
-      cin >> accountNo;
-      if (cin.fail())
-      {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid input. Please enter digits only.\n";
-        break; //--
-      }
-      double amt;
-      while (true)
+      while (!getValidInput(accNo))
+        ;
+      do
       {
         cout << "Enter the amount to be deposited: ";
-        cin >> amt;
-        if (cin.fail())
-        {
-          cin.clear();
-          cin.ignore(numeric_limits<streamsize>::max(), '\n');
-          cout << "Invalid input. Please enter a valid number.\n";
-          continue;
-        }
-        if (amt > 0)
-        {
-          break;
-        }
-        else
-        {
-          cout << "Enter valid amount" << endl;
-        }
-      }
-      account.deposit(accountNo, amt);
+        while (!getValidInput(amount))
+          ;
+        if (amount <= 0)
+          cout << "Amount must be greater than 0.\n";
+      } while (amount <= 0);
+      manager.deposit(accNo, amount);
       break;
+
     case 4:
-      long long actNo;
-      cout << "Enter account Number: " << endl;
-      cin >> actNo;
-      if (cin.fail())
-      {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid input. Please enter digits only.\n";
-        break; //--
-      }
-      double amt1;
-      while (true)
+      cout << "Enter account Number: ";
+      while (!getValidInput(accNo))
+        ;
+      do
       {
         cout << "Enter amount to be withdrawn: ";
-        cin >> amt1;
-        if (cin.fail())
-        {
-          cin.clear();
-          cin.ignore(numeric_limits<streamsize>::max(), '\n');
-          cout << "Invalid input. Please enter a valid number.\n";
-          continue;
-        }
-        if (amt1 > 0 && amt1 <= 50000)
-          break;
-        else if (amt1 < 0)
-        {
-          cout << "Invalid amount " << endl;
-        }
-        else if (amt1 > 50000)
-        {
-          cout << "you can withdraw maximum 50000 per day" << endl;
-        }
-      }
-      account.withdraw(actNo, amt1);
+        while (!getValidInput(amount))
+          ;
+        if (amount <= 0)
+          cout << "Invalid amount.\n";
+        else if (amount > 50000)
+          cout << "You can withdraw maximum 50000 per day.\n";
+      } while (amount <= 0 || amount > 50000);
+      manager.withdraw(accNo, amount);
       break;
+
     case 5:
-      account.modifyAccount();
+      cout << "Enter Account Number: ";
+      while (!getValidInput(accNo))
+        ;
+      if (!manager.modifyAccount(accNo))
+      {
+        cout << "failed to modify amount or account not found.\n";
+      }
       break;
 
     case 6:
       cout << "Enter account Number: " << endl;
-      cin >> accNo;
-      if (cin.fail())
-      {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid input. Please enter digits only.\n";
-        continue; //--
-      }
-      account.viewTransactionlog(accNo);
+      while (!getValidInput(accNo))
+        ;
+      manager.viewTransactionLog(accNo);
       break;
 
     case 7:
       cout << "Thank you for using the system. Goodbye!" << endl;
-      return 0; // exits the program
+      cin.ignore(numeric_limits<streamsize>::max(), '\n');
+      cout << "Press Enter to exit...";
+      cin.get();
+      return 0;
 
     default:
-
       cout << "Invalid Input. Please enter from 1 to 7" << endl;
       break;
     }

@@ -1,284 +1,121 @@
 #include "BankAccount.h"
 #include "Utils.h"
 #include <iostream>
-#include <fstream>
 #include <sstream>
-#include <cctype>  //for tolower()
-#include <cstring> // for strlen()
-
 using namespace std;
 
-const string ACCOUNTS_FILE = "accounts.txt";
-const string TEMP_FILE = "temp.txt";
-const string TRANSACTION_FILE = "transaction.txt";
-const double minimum_balance = 0.0;
+// default constructor
+BankAccount::BankAccount() : Account_Number(0), Holder_name(""), Holder_PhoneNumber(0), Holder_Address(""), balance(0.0) {}
 
-long long BankAccount::last_account_number = 10000000;
+// parameterized constructor
 
-void BankAccount::setLastAccountNumber(long long num)
-{
-  last_account_number = num;
-}
+BankAccount::BankAccount(long long accno, string &name, long long phone, string &addr, double bal) : Account_Number(accno), Holder_name(name), Holder_PhoneNumber(phone), Holder_Address(addr), balance(bal) {}
+// getters
 long long BankAccount::getAccountNumber()
 {
   return Account_Number;
 }
-void BankAccount::createAccount()
+string BankAccount::getHolderName()
 {
-  Account_Number = ++last_account_number;
+  return Holder_name;
+}
+long long BankAccount::getPhoneNumber()
+{
+  return Holder_PhoneNumber;
+}
+string BankAccount::getAddress()
+{
+  return Holder_Address;
+}
+double BankAccount::getBalance()
+{
+  return balance;
+}
+
+// setters
+void BankAccount::setAccountNumber(long long accNo)
+{
+  Account_Number = accNo;
+}
+
+void BankAccount::setHolderName(string &name)
+{
+  Holder_name = name;
+}
+void BankAccount::setPhoneNumber(long long phone)
+{
+  Holder_PhoneNumber = phone;
+}
+void BankAccount::setAddress(string &addr)
+{
+  Holder_Address = addr;
+}
+void BankAccount::setBalance(double bal)
+{
+  balance = bal;
+}
+
+void BankAccount::inputDetails()
+{
   cin.ignore();
-  cout << "Enter name: ";
+  cout << "Enter Account Holder Name: ";
   getline(cin, Holder_name);
+
   while (true)
   {
-    cout << "Enter Phone Number: ";
+    cout << "Enter Phone number: ";
     cin >> Holder_PhoneNumber;
-    if (cin.fail())
+    if (cin.fail() || getLength(Holder_PhoneNumber) != 10)
     {
       cin.clear();
       cin.ignore(1000, '\n');
-      cout << "Invalid input. Please enter digits only.\n";
-      continue;
-    }
-    if (getLength(Holder_PhoneNumber) == 10)
-    {
-      break;
+      cout << "Invalid phone number. Try again." << endl;
     }
     else
     {
-      cout << "The phone Number should have 10 digits please try again\n";
+      break;
     }
   }
-
-  balance = 0;
-  cout << "Enter Address: ";
   cin.ignore();
+  cout << "Enter Address: ";
   getline(cin, Holder_Address);
-
-  // file append
-  ofstream fout(ACCOUNTS_FILE, ios::app);
-  if (fout)
-  {
-    fout << Account_Number << "|" << Holder_name << "|" << Holder_PhoneNumber << "|" << balance << "|" << Holder_Address << "\n";
-  }
-  else
-  {
-    cout << "Error saving acount to file.\n";
-  }
 }
-
-void BankAccount::displayAccount(long long accNo)
+string BankAccount::toFileString()
 {
-  ifstream inFile(ACCOUNTS_FILE);
-  if (!inFile)
-  {
-    cout << "File could not be opened.\n";
-    return;
-  }
-  string line;
-  bool found = false;
-
-  while (getline(inFile, line))
-  {
-    stringstream ss(line);
-    string token;
-
-    getline(ss, token, '|');
-    long long accountNo = stoll(token);
-
-    getline(ss, token, '|');
-    string name = token;
-
-    getline(ss, token, '|');
-    long long phoneNo = stoll(token);
-
-    getline(ss, token, '|');
-    double balance = stod(token);
-
-    getline(ss, token, '|');
-    string address = token;
-
-    if (accountNo == accNo)
-    {
-      cout << "*****Account Details*****" << endl;
-      cout << "Account Number : " << accountNo << endl;
-      cout << "Account Holder Name : " << name << endl;
-      cout << "Account Holder Phone Number : " << phoneNo << endl;
-      cout << "Account Holder Address : " << address << endl;
-      cout << "Balance : " << balance << endl;
-      cout << "*******************************" << endl;
-      found = true;
-      break;
-    }
-  }
-
-  if (!found)
-  {
-    cout << "Account not found.\n";
-  }
+  return to_string(Account_Number) + "|" + Holder_name + "|" + to_string(Holder_PhoneNumber) + "|" + to_string(balance) + "|" + Holder_Address;
 }
-
-void BankAccount::deposit(long long accNo, double amount)
+BankAccount BankAccount::fromFileString(string &line)
 {
-  ifstream inFile(ACCOUNTS_FILE);
-  ofstream tempFile(TEMP_FILE);
-  if (!inFile || !tempFile)
-  {
-    cout << "File error." << endl;
-    return;
-  }
-  bool found = false;
-  string line;
-  while (getline(inFile, line))
-  {
-    stringstream ss(line);
-    string token;
-    getline(ss, token, '|');
-    long long accountNo = stoll(token);
+  stringstream ss(line);
+  string token;
 
-    if (accountNo == accNo)
-    {
-      found = true;
+  getline(ss, token, '|');
+  long long accNo = stoll(token);
 
-      string name, address;
-      long long phoneNo;
-      double balance;
+  getline(ss, token, '|');
+  string name = token;
 
-      getline(ss, token, '|');
-      name = token;
-      getline(ss, token, '|');
-      phoneNo = stoll(token);
-      getline(ss, token, '|');
-      balance = stod(token);
-      getline(ss, token, '|');
-      address = token;
+  getline(ss, token, '|');
+  long long phone = stoll(token);
 
-      balance += amount;
+  getline(ss, token, '|');
+  double bal = stod(token);
 
-      tempFile << accountNo << "|" << name << "|" << phoneNo << "|" << balance << "|" << address << endl;
+  getline(ss, token, '|');
+  string addr = token;
 
-      if (Account_Number == accNo)
-        this->balance = balance;
-
-      logTransaction(accNo, "deposit", amount);
-      cout << "Deposit Success" << endl;
-    }
-    else
-    {
-      tempFile << line << endl;
-    }
-  }
-
-  inFile.close();
-  tempFile.close();
-
-  if (!found)
-  {
-    cout << "Account not found." << endl;
-    remove(TEMP_FILE.c_str());
-  }
-  else
-  {
-    if (remove(ACCOUNTS_FILE.c_str()) != 0 ||
-        rename(TEMP_FILE.c_str(), ACCOUNTS_FILE.c_str()) != 0)
-    {
-      cout << "Error updating account file." << endl;
-    }
-  }
-}
-void BankAccount::withdraw(long long accNo, double amount)
-{
-  ifstream inFile(ACCOUNTS_FILE);
-  ofstream tempFile(TEMP_FILE);
-  if (!inFile || !tempFile)
-  {
-    cout << "File Error." << endl;
-    return;
-  }
-
-  bool found = false;
-  bool insufficient = false;
-  string line;
-  while (getline(inFile, line))
-  {
-    stringstream ss(line);
-    string token;
-    getline(ss, token, '|');
-    long long accountNo = stoll(token);
-    if (accountNo == accNo)
-    {
-      found = true;
-
-      string name, address;
-      long long phoneNo;
-      double balance;
-
-      getline(ss, token, '|');
-      name = token;
-      getline(ss, token, '|');
-      phoneNo = stoll(token);
-      getline(ss, token, '|');
-      balance = stod(token);
-      getline(ss, token, '|');
-      address = token;
-
-      if (amount > balance)
-      {
-        cout << "Insufficient Balance" << endl;
-        tempFile << line << endl;
-        insufficient = true;
-        break;
-      }
-      else if ((balance - amount) <= minimum_balance)
-      {
-        cout << "Account balance cannot be zero" << endl;
-        tempFile << line << endl;
-        insufficient = true;
-        break;
-      }
-      balance -= amount;
-
-      tempFile << accountNo << "|" << name << "|" << phoneNo << "|" << balance << "|" << address << endl;
-
-      if (Account_Number == accNo)
-      {
-        this->balance = balance;
-      }
-      logTransaction(accNo, "withdraw", amount);
-      cout << "Withdraw Successful" << endl;
-    }
-    else
-    {
-      tempFile << line << endl;
-    }
-  }
-  inFile.close();
-  tempFile.close();
-
-  if (!found)
-  {
-    cout << "Account not found." << endl;
-    remove(TEMP_FILE.c_str());
-  }
-  else if (!insufficient)
-  {
-    if (remove(ACCOUNTS_FILE.c_str()) != 0 ||
-        rename(TEMP_FILE.c_str(), ACCOUNTS_FILE.c_str()) != 0)
-    {
-      cout << "Error updating account file." << endl;
-    }
-  }
+  return BankAccount(accNo, name, phone, addr, bal);
 }
 
-bool BankAccount::modifyAccount()
+bool BankAccount::modifyDetails()
 {
   bool modified = false;
-  cout << "Current Acount Details" << endl;
-  cout << "Name: " << Holder_name << endl;
-  cout << "Phone: " << Holder_PhoneNumber << endl;
-  cout << "Address: " << Holder_Address << endl;
-  cout << "Which field do you want to modify?" << endl;
-  cout << "1.Name\n2.Phone\n3.Address\n";
+
+  cout << "Current Account Details\n";
+  displayDetails();
+
+  cout << "\nWhich field do you want to modify?\n";
+  cout << "1. Name\n2. Phone Number\n3. Address\n";
 
   while (true)
   {
@@ -289,161 +126,81 @@ bool BankAccount::modifyAccount()
     switch (choice)
     {
     case 1:
-      cout << "Enter new Name: ";
       cin.ignore();
+      cout << "Enter new name: ";
       getline(cin, Holder_name);
       modified = true;
       break;
-
     case 2:
       while (true)
       {
         cout << "Enter new Phone Number: ";
         cin >> Holder_PhoneNumber;
-        if (cin.fail())
+        if (cin.fail() || getLength(Holder_PhoneNumber) != 10)
         {
           cin.clear();
           cin.ignore(1000, '\n');
-          cout << "Invalid input. Please enter digits only.\n";
-          continue;
-        }
-        if (getLength(Holder_PhoneNumber) == 10)
-        {
-          break;
+          cout << "Invalid input. Try again.\n";
         }
         else
-        {
-          cout << "The phone Number should have 10 digits please try again\n";
-        }
+          break;
       }
       modified = true;
       break;
     case 3:
-      cout << "Enter new Address: ";
       cin.ignore();
+      cout << "Enter new Address: ";
       getline(cin, Holder_Address);
       modified = true;
       break;
-
     default:
-      cout << "Invalid choice. Please enter 1, 2, or 3.";
-      break;
+      cout << "Invalid choice.\n";
     }
+
     char ch;
-    cout << "Modify another field? (y/n):";
+    cout << "Modify another field? (y/n): ";
     cin >> ch;
     if (tolower(ch) == 'n')
       break;
   }
-  if (modified)
-    updateAccountInFile();
 
   return modified;
 }
 
-bool BankAccount::updateAccountInFile()
+void BankAccount::displayDetails()
 {
-  ifstream inFile(ACCOUNTS_FILE);
-  ofstream tempFile(TEMP_FILE);
+  cout << "\n***** Account Details *****\n";
+  cout << "Account Number   : " << Account_Number << "\n";
+  cout << "Holder Name      : " << Holder_name << "\n";
+  cout << "Phone Number     : " << Holder_PhoneNumber << "\n";
+  cout << "Address          : " << Holder_Address << "\n";
+  cout << "Balance          : " << balance << "\n";
+  cout << "***************************\n";
+}
 
-  if (!inFile || !tempFile)
+bool BankAccount::deposit(double amount)
+{
+  if (amount <= 0)
   {
-    cout << "File Error.\n";
+    cout << "Amount must be positive.\n";
     return false;
   }
-
-  string line;
-  bool updated = false;
-
-  while (getline(inFile, line))
-  {
-    stringstream ss(line);
-    string token;
-
-    getline(ss, token, '|');
-    long long accountNo = stoll(token);
-
-    if (accountNo == Account_Number)
-    {
-      tempFile << Account_Number << "|" << Holder_name << "|" << Holder_PhoneNumber << "|" << balance << "|" << Holder_Address << endl;
-      updated = true;
-    }
-    else
-    {
-      tempFile << line << "\n";
-    }
-  }
-  inFile.close();
-  tempFile.close();
-  if (updated)
-  {
-    if (remove(ACCOUNTS_FILE.c_str()) != 0 ||
-        rename(TEMP_FILE.c_str(), ACCOUNTS_FILE.c_str()) != 0)
-    {
-      cout << "Error replacing account file.\n";
-    }
-  }
-  else
-  {
-    remove(TEMP_FILE.c_str());
-  }
-
-  return updated;
+  balance += amount;
+  return true;
 }
 
-void BankAccount::logTransaction(long long accNo, const string &type, double amount)
+bool BankAccount::withdraw(double amount)
 {
-  ofstream logFile(TRANSACTION_FILE, ios::app);
-  if (!logFile)
+  if (amount <= 0)
   {
-    cout << "Could not open transaction file.\n";
-    return;
+    cout << "Amount must be positive.\n";
+    return false;
   }
-
-  time_t now = time(0);
-  char *dt = ctime(&now);
-  dt[strlen(dt) - 1] = '\0';
-
-  logFile << accNo << "|" << type << "|" << amount << "|" << dt << "\n";
-
-  logFile.close();
-}
-
-void BankAccount::viewTransactionlog(long long accNo)
-{
-  ifstream inFile(TRANSACTION_FILE);
-  if (!inFile)
+  if (amount > balance)
   {
-    cout << "File Error." << endl;
-    return;
+    cout << "Insufficient balance.\n";
+    return false;
   }
-
-  string line;
-  bool found = false;
-
-  while (getline(inFile, line))
-  {
-    stringstream ss(line);
-    string token;
-
-    getline(ss, token, '|');
-    long long accountNo = stoll(token);
-
-    if (accountNo == accNo)
-    {
-      getline(ss, token, '|');
-      string type = token;
-      getline(ss, token, '|');
-      double amount = stod(token);
-      getline(ss, token, '|');
-      string time = token;
-
-      cout << type << "   " << amount << "   " << time << endl;
-      found = true;
-    }
-  }
-  if (!found)
-  {
-    cout << "Account not found.\n";
-  }
+  balance -= amount;
+  return true;
 }
